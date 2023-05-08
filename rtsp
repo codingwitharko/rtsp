@@ -1,31 +1,59 @@
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('RTSP Stream Viewer'),
-        ),
-        body: Center(
-          child: FutureBuilder(
-            future: _flutterFFmpeg.execute(
-              '-i rtsp://your_rtsp_stream_url',
-              null,
-            ),
-            builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return const Text('Stream Loaded!');
-              } else {
-                return const CircularProgressIndicator();
-              }
-            },
-          ),
+      title: 'RTSP Player',
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  VideoPlayerController _controller;
+  ChewieController _chewieController;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+        'rtsp://admin:123asdfg@185.190.23.227:555/cam/realmonitor?channel=1&subtype=0');
+    _chewieController = ChewieController(
+      videoPlayerController: _controller,
+      autoPlay: true,
+      looping: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('RTSP Player'),
+      ),
+      body: Center(
+        child: Chewie(
+          controller: _chewieController,
         ),
       ),
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+    _chewieController.dispose();
+  }
 }
-rtsp://admin:123asdfg@185.190.23.227:555/cam/realmonitor?channel=1&subtype=0
+
