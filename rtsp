@@ -14,27 +14,50 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
 class _MyHomePageState extends State<MyHomePage> {
-  VideoPlayerController _controller;
-  ChewieController _chewieController;
+  
+  VideoPlayerController? _vpc;
+  ChewieController? _cc;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(
-        'rtsp://admin:123asdfg@185.190.23.227:555/cam/realmonitor?channel=1&subtype=0');
-    _chewieController = ChewieController(
-      videoPlayerController: _controller,
-      autoPlay: true,
-      looping: true,
-    );
+    initializePlayer();
   }
 
+  @override
+  void dispose() {
+    _vpc!.dispose();
+    _cc!.dispose();
+    super.dispose();
+  }
+
+  Future<void> initializePlayer() async {
+    _vpc = 
+        VideoPlayerController.network('rtsp://admin:123asdfg@185.190.23.227:555/cam/realmonitor?channel=1&subtype=0');
+
+    await Future.wait([_vpc!.initialize()]);
+    _cc = ChewieController(
+      videoPlayerController: _vpc!,
+      autoPlay: true,
+      looping: true,
+      showOptions: false,
+      showControls: true,
+      materialProgressColors: ChewieProgressColors(
+        playedColor: Colors.blue,
+        handleColor: Colors.blue,
+        backgroundColor: Colors.grey,
+        bufferedColor: Colors.white,
+      ),
+      allowMuting: true,
+      allowFullScreen: true,
+      allowedScreenSleep: false,
+      allowPlaybackSpeedChanging: true,
+      placeholder: Container(color: Colors.black),
+      autoInitialize: true,
+    );
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +65,24 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('RTSP Player'),
       ),
       body: Center(
-        child: Chewie(
-          controller: _chewieController,
+        child: _cc != null && _cc!.videoPlayerController.value.isInitialized
+            ? Chewie(controller: _cc!)
+            : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor:
+              AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+              backgroundColor: Colors.grey,
+            ),
+            SizedBox(height: 20),
+            Text('lblWait'),
+          ],
         ),
       ),
     );
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-    _chewieController.dispose();
-  }
 }
+
 
