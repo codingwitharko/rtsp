@@ -28,3 +28,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+rtsp://admin:123asdfg@185.190.23.227:555/cam/realmonitor?channel=1&subtype=0
